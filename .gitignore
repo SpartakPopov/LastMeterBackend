@@ -1,0 +1,28 @@
+### IntelliJ IDEA ###
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+### Java ###
+target/
+build/
+*.class
+
+### Logs ###
+*.log
+
+### OS files ###
+.DS_Store
+Thumbs.db
+
+### Maven wrapper (optional: usually keep these if generated) ###
+# .mvn/
+# mvnw
+# mvnw.cmd
+
+### Environment / local config ###
+.env
+application-local.properties
+application-local.yml

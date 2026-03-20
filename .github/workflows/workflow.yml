@@ -1,4 +1,4 @@
-name: workflow.yml
+name: Build and push
 
 on:
   push:
@@ -24,6 +24,6 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ./LastMeterBackend
           push: true
           tags: ghcr.io/spartakpopov/lastmeterbackend:latest

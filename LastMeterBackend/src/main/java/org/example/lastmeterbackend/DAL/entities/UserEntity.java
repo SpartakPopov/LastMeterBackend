@@ -5,6 +5,7 @@ import lombok.*;
 import org.example.lastmeterbackend.domain.enums.UserRole;
 
 import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "users")

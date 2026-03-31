@@ -4,13 +4,11 @@ import org.example.lastmeterbackend.business.services.PackageService;
 import org.example.lastmeterbackend.domain.models.Package;
 import org.example.lastmeterbackend.presentation.dtos.PackageResponseDto;
 import org.example.lastmeterbackend.presentation.mappers.PackageResponseDtoMapper;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/packages")
+@CrossOrigin(origins = "http://localhost:5173")
 public class PackageController {
 
     private final PackageService packageService;

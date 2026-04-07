@@ -28,24 +28,13 @@ public class PackageController {
         Package createdPkg = packageService.createPackage(pkg);
         return packageDtoMapper.toCreationDto(createdPkg);
     }
-    //Create a package using qr code and if not all info is available, ask for the missing info using 
-    //createPackage(RequestBody Package pkg)
-    @PostMapping("/{qrCode}")
-    public PackageCreationDto createPackageByQrCode(@PathVariable String qrCode) {
-        Package createdPkg = packageService.createPackage(qrCode);
-        return packageDtoMapper.toCreationDto(createdPkg);
-    }
 
     @GetMapping("/{trackingNumber}")
     public PackageResponseDto getByTrackingNumber(@PathVariable String trackingNumber) {
         Package pkg = packageService.getByTrackingNumber(trackingNumber);
         return packageDtoMapper.toDto(pkg);
     }
-    @GetMapping("/{qrCode}")
-    public PackageResponseDto getByQrCode(@PathVariable String qrCode) {
-        Package pkg = packageService.getByQrCode(qrCode);
-        return packageDtoMapper.toDto(pkg);
-    }
+
     @GetMapping("/all")
     public List<PackageResponseDto> getAllPackages() {
         return packageService.getAllPackages().stream()

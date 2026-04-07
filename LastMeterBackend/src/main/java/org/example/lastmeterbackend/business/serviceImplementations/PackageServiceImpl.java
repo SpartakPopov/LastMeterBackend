@@ -36,14 +36,7 @@ public class PackageServiceImpl implements PackageService {
                 ));
     }
     
-    @Override
-    public Package getByQrCode(String qrCode) {
-        return packageRepository.findByQrCode(qrCode)
-                .orElseThrow(() -> new RuntimeException(
-                        "Package not found with qr code: " + qrCode
-                ));
-    }
-    
+
      @Override
     List<Package> getAllPackages() {
         return packageRepository.findAll();

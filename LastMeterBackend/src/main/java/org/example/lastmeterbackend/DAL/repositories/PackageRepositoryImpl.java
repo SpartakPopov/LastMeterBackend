@@ -29,8 +29,6 @@ public class PackageRepositoryImpl implements PackageRepository {
         return packagePersistenceMapper.toDomain(savedEntity);
     }
 
-    @Override Package save(Qr Code)
-
     @Override
     public Package update(String trackingNumber, PackageStatus status) {
         PackageEntity entity = packageJpaRepository.findByTrackingNumber(trackingNumber)
@@ -49,11 +47,6 @@ public class PackageRepositoryImpl implements PackageRepository {
                 .map(packagePersistenceMapper::toDomain);
     }
 
-    @Override
-    public Optional<Package> findByQrCode(String qrCode){
-        return packageJpaRepository.findByQrCode(qrCode)
-                .map(packagePersistenceMapper)::toDomain);
-    }
 
     @Override
     public Optional<Package> findByTrackingNumber(String trackingNumber) {

@@ -15,6 +15,5 @@ public interface PackageRepository {
     List<Package> findAll();
     List<Package> findByReceiver(Long receiverId);
     void deleteById(Long id);
-    Optional<Object> findByQrCode(String qrCode);
 
 }

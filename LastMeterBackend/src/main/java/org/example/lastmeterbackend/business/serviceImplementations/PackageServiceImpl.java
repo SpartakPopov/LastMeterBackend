@@ -37,12 +37,13 @@ public class PackageServiceImpl implements PackageService {
     }
     
 
-     @Override
-    List<Package> getAllPackages() {
+    @Override
+    public List<Package> getAllPackages() {
         return packageRepository.findAll();
     }
     
-    @Override List<Package> getAllPackagesByReceiver(Long receiverId) {
+    @Override
+    public List<Package> getAllPackagesByReceiver(Long receiverId) {
         return packageRepository.findByReceiver(receiverId);
     }
     

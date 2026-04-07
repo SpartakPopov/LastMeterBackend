@@ -27,21 +27,21 @@ public class PackageEntity {
     @Column(length = 500)
     private String description;
 
-    @Column(nullable = false, precision = 10, scale = 2)
+    @Column(precision = 10, scale = 2)
     private BigDecimal length;
 
-    @Column(nullable = false, precision = 10, scale = 2)
+    @Column(precision = 10, scale = 2)
     private BigDecimal width;
 
-    @Column(nullable = false, precision = 10, scale = 2)
+    @Column(precision = 10, scale = 2)
     private BigDecimal height;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 40)
     private PackageStatus status;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "receiver_id", nullable = false)
+    @ManyToOne(optional = true)
+    @JoinColumn(name = "receiver_id", nullable = true)
     private UserEntity receiver;
 
     @ManyToOne

@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import org.example.lastmeterbackend.presentation.mappers.PackageResponseDtoMapper;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -26,7 +25,7 @@ public class PackageController {
         this.packageDtoMapper = packageDtoMapper;
     }
 //Create a package with all the package info
-    @PostMapping("/{create}")
+    @PostMapping("/create")
     public PackageCreationDto createPackage(@RequestBody Package pkg) {
         Package createdPkg = packageService.createPackage(pkg);
         return packageDtoMapper.toCreationDto(createdPkg);

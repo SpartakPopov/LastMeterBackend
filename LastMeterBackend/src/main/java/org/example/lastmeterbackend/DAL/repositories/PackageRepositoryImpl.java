@@ -2,6 +2,7 @@ package org.example.lastmeterbackend.DAL.repositories;
 
 import org.example.lastmeterbackend.DAL.entities.PackageEntity;
 import org.example.lastmeterbackend.DAL.mappers.PackagePersistenceMapper;
+import org.example.lastmeterbackend.domain.enums.PackageStatus;
 import org.example.lastmeterbackend.domain.repositories.PackageRepository;
 import org.springframework.stereotype.Repository;
 import org.example.lastmeterbackend.domain.models.Package;
@@ -29,10 +30,23 @@ public class PackageRepositoryImpl implements PackageRepository {
     }
 
     @Override
+    public Package update(String trackingNumber, PackageStatus status) {
+        PackageEntity entity = packageJpaRepository.findByTrackingNumber(trackingNumber)
+                .orElseThrow(() -> new RuntimeException(
+                        "Package not found with tracking number: " + trackingNumber
+                ));
+        entity.setStatus(status);
+        PackageEntity updatedEntity = packageJpaRepository.save(entity);
+        return packagePersistenceMapper.toDomain(updatedEntity);
+    }
+
+    
+    @Override
     public Optional<Package> findById(Long id) {
         return packageJpaRepository.findById(id)
                 .map(packagePersistenceMapper::toDomain);
     }
+
 
     @Override
     public Optional<Package> findByTrackingNumber(String trackingNumber) {
@@ -43,6 +57,14 @@ public class PackageRepositoryImpl implements PackageRepository {
     @Override
     public List<Package> findAll() {
         return packageJpaRepository.findAll()
+                .stream()
+                .map(packagePersistenceMapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public List<Package> findByReceiver(Long receiverId) {
+        return packageJpaRepository.findByReceiver(receiverId)
                 .stream()
                 .map(packagePersistenceMapper::toDomain)
                 .toList();

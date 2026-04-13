@@ -9,9 +9,12 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import org.example.lastmeterbackend.presentation.mappers.PackageResponseDtoMapper;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/packages")
+@CrossOrigin(origins = "http://localhost:5173")
 public class PackageController {
 
     private final PackageService packageService;

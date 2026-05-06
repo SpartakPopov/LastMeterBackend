@@ -14,6 +14,7 @@ public interface PackageRepository {
     Optional<Package> findByTrackingNumber(String trackingNumber);
     List<Package> findAll();
     List<Package> findByReceiver(Long receiverId);
+    List<Package> findUnassigned();
     void deleteById(Long id);
 
 }

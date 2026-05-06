@@ -1,7 +1,9 @@
 package org.example.lastmeterbackend.presentation.controllers;
 
 import org.example.lastmeterbackend.business.services.PackageService;
+import org.example.lastmeterbackend.domain.enums.PackageStatus;
 import org.example.lastmeterbackend.domain.models.Package;
+import org.example.lastmeterbackend.domain.models.User;
 import org.example.lastmeterbackend.presentation.dtos.PackageCreationDto;
 import org.example.lastmeterbackend.presentation.dtos.PackageResponseDto;
 import org.example.lastmeterbackend.presentation.mappers.PackageDtoMapper;
@@ -9,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/packages")
@@ -24,9 +25,22 @@ public class PackageController {
         this.packageService = packageService;
         this.packageDtoMapper = packageDtoMapper;
     }
-//Create a package with all the package info
     @PostMapping("/create")
-    public PackageCreationDto createPackage(@RequestBody Package pkg) {
+    public PackageCreationDto createPackage(@RequestBody PackageCreationDto dto) {
+        User receiver = dto.getReceiverId() != null
+                ? User.builder().id(dto.getReceiverId()).build()
+                : null;
+
+        Package pkg = Package.builder()
+                .trackingNumber(dto.getTrackingNumber())
+                .description(dto.getDescription())
+                .length(dto.getLength())
+                .width(dto.getWidth())
+                .height(dto.getHeight())
+                .status(dto.getStatus() != null ? dto.getStatus() : PackageStatus.PENDING)
+                .receiver(receiver)
+                .build();
+
         Package createdPkg = packageService.createPackage(pkg);
         return packageDtoMapper.toCreationDto(createdPkg);
     }
@@ -46,6 +60,13 @@ public class PackageController {
     @GetMapping("/receiver/{receiverId}")
     public List<PackageResponseDto> getAllPackagesByReceiver(@PathVariable Long receiverId) {
         return packageService.getAllPackagesByReceiver(receiverId).stream()
+                .map(packageDtoMapper::toDto)
+                .collect(Collectors.toList());
+    }
+
+    @GetMapping("/unassigned")
+    public List<PackageResponseDto> getUnassignedPackages() {
+        return packageService.getUnassignedPackages().stream()
                 .map(packageDtoMapper::toDto)
                 .collect(Collectors.toList());
     }

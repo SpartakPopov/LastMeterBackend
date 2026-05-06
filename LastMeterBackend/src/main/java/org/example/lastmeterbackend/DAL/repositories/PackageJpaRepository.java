@@ -8,7 +8,8 @@ import java.util.Optional;
 
 public interface PackageJpaRepository extends JpaRepository<PackageEntity, Long> {
     Optional<PackageEntity> findByTrackingNumber(String trackingNumber);
-    List<PackageEntity> findByReceiver(Long receiverId);
+    List<PackageEntity> findByReceiverId(Long receiverId);
+    List<PackageEntity> findByReceiverIsNull();
     List<PackageEntity> findAll();
     
 }

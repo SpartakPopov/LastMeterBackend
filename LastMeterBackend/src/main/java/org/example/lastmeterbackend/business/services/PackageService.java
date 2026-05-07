@@ -15,4 +15,6 @@ public interface PackageService {
     List<Package> getAllPackages();
     //Get all packages by receiver
     List<Package> getAllPackagesByReceiver(Long receiverId);
+    //Get all packages without a receiver
+    List<Package> getUnassignedPackages();
 }

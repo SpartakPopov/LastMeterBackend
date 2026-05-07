@@ -64,7 +64,15 @@ public class PackageRepositoryImpl implements PackageRepository {
 
     @Override
     public List<Package> findByReceiver(Long receiverId) {
-        return packageJpaRepository.findByReceiver(receiverId)
+        return packageJpaRepository.findByReceiverId(receiverId)
+                .stream()
+                .map(packagePersistenceMapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public List<Package> findUnassigned() {
+        return packageJpaRepository.findByReceiverIsNull()
                 .stream()
                 .map(packagePersistenceMapper::toDomain)
                 .toList();

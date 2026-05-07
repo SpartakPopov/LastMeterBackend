@@ -1,7 +1,9 @@
 package org.example.lastmeterbackend.presentation.dtos;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.example.lastmeterbackend.domain.enums.PackageStatus;
 
@@ -11,6 +13,8 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class PackageCreationDto {
 
     private Long id;

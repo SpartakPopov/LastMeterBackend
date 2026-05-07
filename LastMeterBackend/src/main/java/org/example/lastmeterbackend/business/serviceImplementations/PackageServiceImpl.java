@@ -46,5 +46,9 @@ public class PackageServiceImpl implements PackageService {
     public List<Package> getAllPackagesByReceiver(Long receiverId) {
         return packageRepository.findByReceiver(receiverId);
     }
-    
+
+    @Override
+    public List<Package> getUnassignedPackages() {
+        return packageRepository.findUnassigned();
+    }
 }

@@ -43,4 +43,11 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
     jvmArgs += "-javaagent:${configurations.mockitoAgent.asPath}"
+    testLogging {
+        events "passed", "failed", "skipped"
+        exceptionFormat "full"
+        showExceptions true
+        showCauses true
+        showStackTraces true
+    }
 }

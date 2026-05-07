@@ -6,13 +6,15 @@ import org.example.lastmeterbackend.domain.models.OrderRequest;
 import org.example.lastmeterbackend.domain.models.User;
 import org.example.lastmeterbackend.presentation.controllers.OrderRequestController;
 import org.example.lastmeterbackend.presentation.mappers.OrderRequestDtoMapper;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.mockito.ArgumentCaptor;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -27,18 +29,16 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@WebMvcTest(OrderRequestController.class)
+@AutoConfigureMockMvc(addFilters = false)
+@Import(OrderRequestDtoMapper.class)
 class OrderRequestControllerIntegrationTest {
 
+    @Autowired
     private MockMvc mockMvc;
-    private OrderRequestService orderRequestService;
 
-    @BeforeEach
-    void setUp() {
-        orderRequestService = Mockito.mock(OrderRequestService.class);
-        OrderRequestController orderRequestController =
-                new OrderRequestController(orderRequestService, new OrderRequestDtoMapper());
-        mockMvc = MockMvcBuilders.standaloneSetup(orderRequestController).build();
-    }
+    @MockitoBean
+    private OrderRequestService orderRequestService;
 
     @Test
     void createOrderRequest_returnsCreatedOrderRequest() throws Exception {
@@ -67,7 +67,8 @@ class OrderRequestControllerIntegrationTest {
                 .andExpect(jsonPath("$.requestedForId").value(3))
                 .andExpect(jsonPath("$.status").value("PENDING"));
 
-        ArgumentCaptor<OrderRequest> orderRequestCaptor = ArgumentCaptor.forClass(OrderRequest.class);
+        ArgumentCaptor<OrderRequest> orderRequestCaptor =
+                org.mockito.ArgumentCaptor.forClass(OrderRequest.class);
         verify(orderRequestService).createOrderRequest(orderRequestCaptor.capture());
         OrderRequest capturedOrderRequest = orderRequestCaptor.getValue();
         assertEquals("Laptop", capturedOrderRequest.getDescription());

@@ -11,17 +11,20 @@ import org.example.lastmeterbackend.domain.models.Package;
 import org.example.lastmeterbackend.domain.models.User;
 import org.example.lastmeterbackend.presentation.controllers.PackageController;
 import org.example.lastmeterbackend.presentation.mappers.PackageDtoMapper;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -29,25 +32,24 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@WebMvcTest(PackageController.class)
+@AutoConfigureMockMvc(addFilters = false)
+@Import(PackageDtoMapper.class)
 class PackageControllerIntegrationTest {
 
+    @Autowired
     private MockMvc mockMvc;
 
+    @MockitoBean
     private PackageService packageService;
 
-    @BeforeEach
-    void setUp() {
-        packageService = Mockito.mock(PackageService.class);
-        PackageController packageController = new PackageController(packageService, new PackageDtoMapper());
-        mockMvc = MockMvcBuilders.standaloneSetup(packageController).build();
-    }
-
     @Test
-    void createPackageReturnsCreatedPackage() throws Exception {
-        Package createdPackage = buildPackage(1L, "TRACK-100", PackageStatus.PENDING);
+    void createPackage_returnsCreatedPackage() throws Exception {
+        // Arrange
+        Package createdPackage = createPackage(1L, "TRACK-100", PackageStatus.PENDING);
+        when(packageService.createPackage(any(Package.class))).thenReturn(createdPackage);
 
-        when(packageService.createPackage(Mockito.any(Package.class))).thenReturn(createdPackage);
-
+        // Act + Assert
         mockMvc.perform(post("/packages/create")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -68,15 +70,16 @@ class PackageControllerIntegrationTest {
                 .andExpect(jsonPath("$.lockerNumber").value("L-01"))
                 .andExpect(jsonPath("$.buildingName").value("Main Building"));
 
-        verify(packageService).createPackage(Mockito.any(Package.class));
+        verify(packageService).createPackage(any(Package.class));
     }
 
     @Test
-    void getByTrackingNumberReturnsPackage() throws Exception {
-        Package pkg = buildPackage(2L, "TRACK-200", PackageStatus.DELIVERED_TO_LOCKER);
-
+    void getByTrackingNumber_returnsPackage() throws Exception {
+        // Arrange
+        Package pkg = createPackage(2L, "TRACK-200", PackageStatus.DELIVERED_TO_LOCKER);
         when(packageService.getByTrackingNumber("TRACK-200")).thenReturn(pkg);
 
+        // Act + Assert
         mockMvc.perform(get("/packages/TRACK-200"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(2))
@@ -89,14 +92,15 @@ class PackageControllerIntegrationTest {
     }
 
     @Test
-    void getAllPackagesReturnsAllPackages() throws Exception {
+    void getAllPackages_returnsAllPackages() throws Exception {
+        // Arrange
         List<Package> packages = List.of(
-                buildPackage(3L, "TRACK-300", PackageStatus.PENDING),
-                buildPackage(4L, "TRACK-301", PackageStatus.PICKED_UP)
+                createPackage(3L, "TRACK-300", PackageStatus.PENDING),
+                createPackage(4L, "TRACK-301", PackageStatus.PICKED_UP)
         );
-
         when(packageService.getAllPackages()).thenReturn(packages);
 
+        // Act + Assert
         mockMvc.perform(get("/packages/all"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2))
@@ -109,15 +113,16 @@ class PackageControllerIntegrationTest {
     }
 
     @Test
-    void getAllPackagesByReceiverReturnsReceiverPackages() throws Exception {
+    void getAllPackagesByReceiver_returnsReceiverPackages() throws Exception {
+        // Arrange
         Long receiverId = 11L;
         List<Package> packages = List.of(
-                buildPackage(5L, "TRACK-400", PackageStatus.PENDING),
-                buildPackage(6L, "TRACK-401", PackageStatus.DELIVERED_TO_LOCKER)
+                createPackage(5L, "TRACK-400", PackageStatus.PENDING),
+                createPackage(6L, "TRACK-401", PackageStatus.DELIVERED_TO_LOCKER)
         );
-
         when(packageService.getAllPackagesByReceiver(receiverId)).thenReturn(packages);
 
+        // Act + Assert
         mockMvc.perform(get("/packages/receiver/{receiverId}", receiverId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2))
@@ -128,31 +133,32 @@ class PackageControllerIntegrationTest {
         verify(packageService).getAllPackagesByReceiver(receiverId);
     }
 
-    private static Package buildPackage(Long id, String trackingNumber, PackageStatus status) {
+    private Package createPackage(Long id, String trackingNumber, PackageStatus status) {
         Building building = Building.builder()
+                .id(21L)
                 .name("Main Building")
                 .address("123 Main St")
                 .description("Primary pickup point")
                 .build();
-        setId(building, 21L);
 
         Locker locker = Locker.builder()
+                .id(31L)
                 .lockerNumber("L-01")
                 .size(LockerSize.LARGE)
                 .status(LockerStatus.OCCUPIED)
                 .building(building)
                 .build();
-        setId(locker, 31L);
 
         User receiver = User.builder()
+                .id(11L)
                 .firstName("Mila")
                 .lastName("Bos")
                 .email("mila@example.com")
                 .role(UserRole.EMPLOYEE)
                 .build();
-        setId(receiver, 11L);
 
-        Package pkg = Package.builder()
+        return Package.builder()
+                .id(id)
                 .trackingNumber(trackingNumber)
                 .description("Laptop")
                 .length(new BigDecimal("30.50"))
@@ -164,17 +170,5 @@ class PackageControllerIntegrationTest {
                 .deliveredAt(LocalDateTime.of(2026, 5, 7, 10, 15))
                 .pickedUpAt(status == PackageStatus.PICKED_UP ? LocalDateTime.of(2026, 5, 7, 12, 30) : null)
                 .build();
-        setId(pkg, id);
-        return pkg;
-    }
-
-    private static void setId(Object target, Long value) {
-        try {
-            var field = target.getClass().getDeclaredField("id");
-            field.setAccessible(true);
-            field.set(target, value);
-        } catch (ReflectiveOperationException ex) {
-            throw new IllegalStateException("Failed to set field: " + "id", ex);
-        }
     }
 }

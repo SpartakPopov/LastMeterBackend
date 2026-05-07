@@ -1,4 +1,4 @@
-package org.example.lastmeterbackend;
+package org.example.lastmeterbackend.unitTests;
 
 import org.example.lastmeterbackend.business.serviceImplementations.PackageServiceImpl;
 import org.example.lastmeterbackend.domain.enums.PackageStatus;

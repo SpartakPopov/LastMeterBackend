@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -29,96 +28,107 @@ class PackageServiceUnitTest {
     private PackageServiceImpl packageService;
 
     @Test
-    void createPackageReturnsSavedPackage() {
-        Package pkg = Package.builder()
-                .trackingNumber("TRACK-001")
-                .status(PackageStatus.PENDING)
-                .build();
+    void createPackage_returnsSavedPackage() {
+        // Arrange
+        Package newPackage = createPackage("TRACK-001", PackageStatus.PENDING);
+        when(packageRepository.save(newPackage)).thenReturn(newPackage);
 
-        when(packageRepository.save(pkg)).thenReturn(pkg);
+        // Act
+        Package result = packageService.createPackage(newPackage);
 
-        Package result = packageService.createPackage(pkg);
-
-        assertSame(pkg, result);
-        verify(packageRepository).save(pkg);
+        // Assert
+        assertEquals(newPackage, result);
+        verify(packageRepository).save(newPackage);
     }
 
     @Test
-    void getByTrackingNumberReturnsPackageWhenItExists() {
+    void getByTrackingNumber_returnsPackageWhenItExists() {
+        // Arrange
         String trackingNumber = "TRACK-002";
-        Package pkg = Package.builder()
-                .trackingNumber(trackingNumber)
-                .status(PackageStatus.DELIVERED_TO_LOCKER)
-                .build();
+        Package expectedPackage = createPackage(trackingNumber, PackageStatus.DELIVERED_TO_LOCKER);
+        when(packageRepository.findByTrackingNumber(trackingNumber)).thenReturn(Optional.of(expectedPackage));
 
-        when(packageRepository.findByTrackingNumber(trackingNumber)).thenReturn(Optional.of(pkg));
-
+        // Act
         Package result = packageService.getByTrackingNumber(trackingNumber);
 
-        assertSame(pkg, result);
+        // Assert
+        assertEquals(expectedPackage, result);
         verify(packageRepository).findByTrackingNumber(trackingNumber);
     }
 
     @Test
-    void updateStatusReturnsUpdatedPackage() {
+    void updateStatus_returnsUpdatedPackage() {
+        // Arrange
         String trackingNumber = "TRACK-003";
         PackageStatus status = PackageStatus.PICKED_UP;
-        Package updatedPackage = Package.builder()
-                .trackingNumber(trackingNumber)
-                .status(status)
-                .build();
-
+        Package updatedPackage = createPackage(trackingNumber, status);
         when(packageRepository.update(trackingNumber, status)).thenReturn(updatedPackage);
 
+        // Act
         Package result = packageService.updateStatus(trackingNumber, status);
 
-        assertSame(updatedPackage, result);
+        // Assert
+        assertEquals(updatedPackage, result);
         verify(packageRepository).update(trackingNumber, status);
     }
 
     @Test
-    void getAllPackagesReturnsAllPackages() {
-        List<Package> packages = List.of(
-                Package.builder().trackingNumber("TRACK-004").status(PackageStatus.PENDING).build(),
-                Package.builder().trackingNumber("TRACK-005").status(PackageStatus.DELIVERED_TO_LOCKER).build()
+    void getAllPackages_returnsAllPackages() {
+        // Arrange
+        List<Package> expectedPackages = List.of(
+                createPackage("TRACK-004", PackageStatus.PENDING),
+                createPackage("TRACK-005", PackageStatus.DELIVERED_TO_LOCKER)
         );
+        when(packageRepository.findAll()).thenReturn(expectedPackages);
 
-        when(packageRepository.findAll()).thenReturn(packages);
-
+        // Act
         List<Package> result = packageService.getAllPackages();
 
-        assertSame(packages, result);
+        // Assert
+        assertEquals(expectedPackages, result);
         verify(packageRepository).findAll();
     }
 
     @Test
-    void getAllPackagesByReceiverReturnsReceiverPackages() {
+    void getAllPackagesByReceiver_returnsReceiverPackages() {
+        // Arrange
         Long receiverId = 10L;
-        List<Package> packages = List.of(
-                Package.builder().trackingNumber("TRACK-006").status(PackageStatus.PENDING).build(),
-                Package.builder().trackingNumber("TRACK-007").status(PackageStatus.PICKED_UP).build()
+        List<Package> expectedPackages = List.of(
+                createPackage("TRACK-006", PackageStatus.PENDING),
+                createPackage("TRACK-007", PackageStatus.PICKED_UP)
         );
+        when(packageRepository.findByReceiver(receiverId)).thenReturn(expectedPackages);
 
-        when(packageRepository.findByReceiver(receiverId)).thenReturn(packages);
-
+        // Act
         List<Package> result = packageService.getAllPackagesByReceiver(receiverId);
 
-        assertSame(packages, result);
+        // Assert
+        assertEquals(expectedPackages, result);
         verify(packageRepository).findByReceiver(receiverId);
     }
 
     @Test
-    void getByTrackingNumberThrowsWhenPackageDoesNotExist() {
+    void getByTrackingNumber_throwsExceptionWhenPackageDoesNotExist() {
+        // Arrange
         String trackingNumber = "MISSING-001";
-
         when(packageRepository.findByTrackingNumber(trackingNumber)).thenReturn(Optional.empty());
 
+        // Act
         RuntimeException exception = assertThrows(
                 RuntimeException.class,
                 () -> packageService.getByTrackingNumber(trackingNumber)
         );
 
+        // Assert
         assertEquals("Package not found with tracking number: " + trackingNumber, exception.getMessage());
         verify(packageRepository).findByTrackingNumber(trackingNumber);
+    }
+
+    private Package createPackage(String trackingNumber, PackageStatus status) {
+        return Package.builder()
+                .trackingNumber(trackingNumber)
+                .description(trackingNumber + " description")
+                .status(status)
+                .build();
     }
 }

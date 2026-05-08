@@ -7,6 +7,7 @@ import org.example.lastmeterbackend.domain.enums.PackageStatus;
 import org.example.lastmeterbackend.domain.models.OrderRequest;
 import org.example.lastmeterbackend.domain.models.Package;
 import org.example.lastmeterbackend.domain.repositories.OrderRequestRepository;
+import org.example.lastmeterbackend.presentation.dtos.FulfillPackageDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -57,13 +58,17 @@ public class OrderRequestServiceImpl implements OrderRequestService {
 
     @Override
     @Transactional
-    public OrderRequest fulfillOrderRequest(Long id, List<String> trackingNumbers) {
+    public OrderRequest fulfillOrderRequest(Long id, List<FulfillPackageDto> packages) {
         OrderRequest orderRequest = orderRequestRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("OrderRequest not found with id: " + id));
 
-        for (String trackingNumber : trackingNumbers) {
+        for (FulfillPackageDto dto : packages) {
             Package pkg = Package.builder()
-                    .trackingNumber(trackingNumber)
+                    .trackingNumber(dto.getTrackingNumber())
+                    .description(dto.getDescription())
+                    .length(dto.getLength())
+                    .width(dto.getWidth())
+                    .height(dto.getHeight())
                     .status(PackageStatus.PENDING)
                     .receiver(orderRequest.getRequestedFor())
                     .build();

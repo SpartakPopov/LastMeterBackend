@@ -87,6 +87,6 @@ public class OrderRequestController {
     public OrderRequestResponseDto fulfillOrderRequest(
             @PathVariable Long id,
             @RequestBody OrderRequestFulfillDto dto) {
-        return dtoMapper.toDto(orderRequestService.fulfillOrderRequest(id, dto.getTrackingNumbers()));
+        return dtoMapper.toDto(orderRequestService.fulfillOrderRequest(id, dto.getPackages()));
     }
 }

@@ -79,6 +79,18 @@ public class PackageRepositoryImpl implements PackageRepository {
     }
 
     @Override
+    public Package updateFields(Long id, Package fields) {
+        PackageEntity entity = packageJpaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Package not found with id: " + id));
+        if (fields.getTrackingNumber() != null) entity.setTrackingNumber(fields.getTrackingNumber());
+        if (fields.getDescription() != null) entity.setDescription(fields.getDescription());
+        entity.setLength(fields.getLength());
+        entity.setWidth(fields.getWidth());
+        entity.setHeight(fields.getHeight());
+        return packagePersistenceMapper.toDomain(packageJpaRepository.save(entity));
+    }
+
+    @Override
     public void deleteById(Long id) {
         packageJpaRepository.deleteById(id);
     }

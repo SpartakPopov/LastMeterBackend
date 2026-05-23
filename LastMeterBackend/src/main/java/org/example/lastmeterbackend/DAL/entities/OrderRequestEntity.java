@@ -49,4 +49,8 @@ public class OrderRequestEntity {
 
     @Column(nullable = false)
     private LocalDateTime updatedAt;
+
+    @ManyToOne
+    @JoinColumn(name = "group_id")
+    private OrderGroupEntity group;
 }

@@ -10,6 +10,7 @@ import org.example.lastmeterbackend.domain.models.Package;
 public interface PackageRepository {
     Package save(Package pkg);
     Package update(String trackingNumber, PackageStatus status);
+    Package updateFields(Long id, Package fields);
     Optional<Package> findById(Long id);
     Optional<Package> findByTrackingNumber(String trackingNumber);
     List<Package> findAll();

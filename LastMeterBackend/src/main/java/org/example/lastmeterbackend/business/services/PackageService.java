@@ -17,4 +17,6 @@ public interface PackageService {
     List<Package> getAllPackagesByReceiver(Long receiverId);
     //Get all packages without a receiver
     List<Package> getUnassignedPackages();
+    //Update editable fields (tracking number, description, dimensions)
+    Package updatePackage(Long id, Package fields);
 }

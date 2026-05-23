@@ -51,4 +51,9 @@ public class PackageServiceImpl implements PackageService {
     public List<Package> getUnassignedPackages() {
         return packageRepository.findUnassigned();
     }
+
+    @Override
+    public Package updatePackage(Long id, Package fields) {
+        return packageRepository.updateFields(id, fields);
+    }
 }

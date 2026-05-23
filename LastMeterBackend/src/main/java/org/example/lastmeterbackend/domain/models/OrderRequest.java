@@ -27,4 +27,6 @@ public class OrderRequest {
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    private Long groupId;
 }

@@ -27,4 +27,6 @@ public class OrderRequestResponseDto {
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    private Long groupId;
 }

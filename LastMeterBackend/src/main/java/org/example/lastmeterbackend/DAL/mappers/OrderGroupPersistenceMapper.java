@@ -1,44 +1,40 @@
 package org.example.lastmeterbackend.DAL.mappers;
 
-import org.example.lastmeterbackend.DAL.entities.OrderRequestEntity;
+import org.example.lastmeterbackend.DAL.entities.OrderGroupEntity;
 import org.example.lastmeterbackend.DAL.entities.UserEntity;
-import org.example.lastmeterbackend.domain.models.OrderRequest;
+import org.example.lastmeterbackend.domain.models.OrderGroup;
 import org.example.lastmeterbackend.domain.models.User;
 import org.springframework.stereotype.Component;
 
 @Component
-public class OrderRequestPersistenceMapper {
+public class OrderGroupPersistenceMapper {
 
-    public OrderRequest toDomain(OrderRequestEntity entity) {
+    private final OrderRequestPersistenceMapper orderRequestMapper;
+
+    public OrderGroupPersistenceMapper(OrderRequestPersistenceMapper orderRequestMapper) {
+        this.orderRequestMapper = orderRequestMapper;
+    }
+
+    public OrderGroup toDomain(OrderGroupEntity entity) {
         if (entity == null) return null;
-        return OrderRequest.builder()
+        return OrderGroup.builder()
                 .id(entity.getId())
-                .description(entity.getDescription())
-                .productLinks(entity.getProductLinks())
-                .quantity(entity.getQuantity())
+                .name(entity.getName())
                 .requestedBy(mapUserToDomain(entity.getRequestedBy()))
-                .requestedFor(mapUserToDomain(entity.getRequestedFor()))
-                .status(entity.getStatus())
-                .managerNotes(entity.getManagerNotes())
+                .orderRequests(entity.getOrderRequests().stream()
+                        .map(orderRequestMapper::toDomain)
+                        .toList())
                 .createdAt(entity.getCreatedAt())
-                .updatedAt(entity.getUpdatedAt())
-                .groupId(entity.getGroup() != null ? entity.getGroup().getId() : null)
                 .build();
     }
 
-    public OrderRequestEntity toEntity(OrderRequest domain) {
+    public OrderGroupEntity toEntity(OrderGroup domain) {
         if (domain == null) return null;
-        return OrderRequestEntity.builder()
+        return OrderGroupEntity.builder()
                 .id(domain.getId())
-                .description(domain.getDescription())
-                .productLinks(domain.getProductLinks())
-                .quantity(domain.getQuantity())
+                .name(domain.getName())
                 .requestedBy(mapUserToEntity(domain.getRequestedBy()))
-                .requestedFor(mapUserToEntity(domain.getRequestedFor()))
-                .status(domain.getStatus())
-                .managerNotes(domain.getManagerNotes())
                 .createdAt(domain.getCreatedAt())
-                .updatedAt(domain.getUpdatedAt())
                 .build();
     }
 

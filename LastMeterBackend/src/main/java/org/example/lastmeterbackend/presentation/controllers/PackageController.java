@@ -6,6 +6,7 @@ import org.example.lastmeterbackend.domain.models.Package;
 import org.example.lastmeterbackend.domain.models.User;
 import org.example.lastmeterbackend.presentation.dtos.PackageCreationDto;
 import org.example.lastmeterbackend.presentation.dtos.PackageResponseDto;
+import org.example.lastmeterbackend.presentation.dtos.PackageUpdateDto;
 import org.example.lastmeterbackend.presentation.mappers.PackageDtoMapper;
 import org.springframework.web.bind.annotation.*;
 
@@ -69,5 +70,17 @@ public class PackageController {
         return packageService.getUnassignedPackages().stream()
                 .map(packageDtoMapper::toDto)
                 .collect(Collectors.toList());
+    }
+
+    @PutMapping("/{id}")
+    public PackageResponseDto updatePackage(@PathVariable Long id, @RequestBody PackageUpdateDto dto) {
+        Package fields = Package.builder()
+                .trackingNumber(dto.getTrackingNumber())
+                .description(dto.getDescription())
+                .length(dto.getLength())
+                .width(dto.getWidth())
+                .height(dto.getHeight())
+                .build();
+        return packageDtoMapper.toDto(packageService.updatePackage(id, fields));
     }
 }

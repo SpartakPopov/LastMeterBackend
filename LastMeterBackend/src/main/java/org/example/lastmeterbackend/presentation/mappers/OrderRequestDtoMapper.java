@@ -23,6 +23,7 @@ public class OrderRequestDtoMapper {
                 .managerNotes(orderRequest.getManagerNotes())
                 .createdAt(orderRequest.getCreatedAt())
                 .updatedAt(orderRequest.getUpdatedAt())
+                .groupId(orderRequest.getGroupId())
                 .build();
     }
 }

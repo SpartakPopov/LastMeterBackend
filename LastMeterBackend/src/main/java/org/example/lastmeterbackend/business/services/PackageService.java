@@ -19,4 +19,6 @@ public interface PackageService {
     List<Package> getUnassignedPackages();
     //Update editable fields (tracking number, description, dimensions)
     Package updatePackage(Long id, Package fields);
+    //Mark package as picked up and free its locker
+    Package pickup(String trackingNumber);
 }

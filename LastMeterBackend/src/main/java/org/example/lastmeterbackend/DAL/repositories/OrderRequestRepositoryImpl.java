@@ -62,4 +62,15 @@ public class OrderRequestRepositoryImpl implements OrderRequestRepository {
         entity.setUpdatedAt(LocalDateTime.now());
         return mapper.toDomain(jpaRepository.save(entity));
     }
+
+    @Override
+    public OrderRequest updateFields(Long id, String description, String productLinks, Integer quantity) {
+        OrderRequestEntity entity = jpaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("OrderRequest not found with id: " + id));
+        if (description != null) entity.setDescription(description);
+        if (productLinks != null) entity.setProductLinks(productLinks);
+        if (quantity != null) entity.setQuantity(quantity);
+        entity.setUpdatedAt(LocalDateTime.now());
+        return mapper.toDomain(jpaRepository.save(entity));
+    }
 }

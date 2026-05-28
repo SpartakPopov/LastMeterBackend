@@ -8,6 +8,7 @@ import org.example.lastmeterbackend.presentation.dtos.OrderRequestCreationDto;
 import org.example.lastmeterbackend.presentation.dtos.OrderRequestFulfillDto;
 import org.example.lastmeterbackend.presentation.dtos.OrderRequestRejectDto;
 import org.example.lastmeterbackend.presentation.dtos.OrderRequestResponseDto;
+import org.example.lastmeterbackend.presentation.dtos.OrderRequestUpdateDto;
 import org.example.lastmeterbackend.presentation.mappers.OrderRequestDtoMapper;
 import org.springframework.web.bind.annotation.*;
 
@@ -67,6 +68,14 @@ public class OrderRequestController {
     @GetMapping("/{id}")
     public OrderRequestResponseDto getOrderRequestById(@PathVariable Long id) {
         return dtoMapper.toDto(orderRequestService.getOrderRequestById(id));
+    }
+
+    @PatchMapping("/{id}")
+    public OrderRequestResponseDto updateOrderRequest(
+            @PathVariable Long id,
+            @RequestBody OrderRequestUpdateDto dto) {
+        return dtoMapper.toDto(orderRequestService.updateOrderRequest(
+                id, dto.getDescription(), dto.getProductLinks(), dto.getQuantity()));
     }
 
     @PatchMapping("/{id}/approve")

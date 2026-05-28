@@ -2,11 +2,13 @@ package org.example.lastmeterbackend.DAL.repositories;
 
 import org.example.lastmeterbackend.DAL.entities.PackageEntity;
 import org.example.lastmeterbackend.DAL.mappers.PackagePersistenceMapper;
+import org.example.lastmeterbackend.domain.enums.LockerStatus;
 import org.example.lastmeterbackend.domain.enums.PackageStatus;
 import org.example.lastmeterbackend.domain.repositories.PackageRepository;
 import org.springframework.stereotype.Repository;
 import org.example.lastmeterbackend.domain.models.Package;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,11 +17,14 @@ public class PackageRepositoryImpl implements PackageRepository {
 
     private final PackageJpaRepository packageJpaRepository;
     private final PackagePersistenceMapper packagePersistenceMapper;
+    private final LockerJpaRepository lockerJpaRepository;
 
     public PackageRepositoryImpl(PackageJpaRepository packageJpaRepository,
-                                 PackagePersistenceMapper packagePersistenceMapper) {
+                                 PackagePersistenceMapper packagePersistenceMapper,
+                                 LockerJpaRepository lockerJpaRepository) {
         this.packageJpaRepository = packageJpaRepository;
         this.packagePersistenceMapper = packagePersistenceMapper;
+        this.lockerJpaRepository = lockerJpaRepository;
     }
 
     @Override
@@ -93,5 +98,20 @@ public class PackageRepositoryImpl implements PackageRepository {
     @Override
     public void deleteById(Long id) {
         packageJpaRepository.deleteById(id);
+    }
+
+    @Override
+    public Package pickup(String trackingNumber) {
+        PackageEntity entity = packageJpaRepository.findByTrackingNumber(trackingNumber)
+                .orElseThrow(() -> new RuntimeException(
+                        "Package not found with tracking number: " + trackingNumber
+                ));
+        entity.setStatus(PackageStatus.PICKED_UP);
+        entity.setPickedUpAt(LocalDateTime.now());
+        if (entity.getLocker() != null) {
+            entity.getLocker().setStatus(LockerStatus.AVAILABLE);
+            lockerJpaRepository.save(entity.getLocker());
+        }
+        return packagePersistenceMapper.toDomain(packageJpaRepository.save(entity));
     }
 }

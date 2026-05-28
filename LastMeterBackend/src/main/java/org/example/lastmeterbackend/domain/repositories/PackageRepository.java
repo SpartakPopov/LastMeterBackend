@@ -18,4 +18,5 @@ public interface PackageRepository {
     List<Package> findUnassigned();
     void deleteById(Long id);
 
+    Package pickup(String trackingNumber);
 }

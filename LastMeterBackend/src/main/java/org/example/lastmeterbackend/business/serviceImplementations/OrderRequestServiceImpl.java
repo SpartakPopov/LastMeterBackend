@@ -57,6 +57,11 @@ public class OrderRequestServiceImpl implements OrderRequestService {
     }
 
     @Override
+    public OrderRequest updateOrderRequest(Long id, String description, String productLinks, Integer quantity) {
+        return orderRequestRepository.updateFields(id, description, productLinks, quantity);
+    }
+
+    @Override
     @Transactional
     public OrderRequest fulfillOrderRequest(Long id, List<FulfillPackageDto> packages) {
         OrderRequest orderRequest = orderRequestRepository.findById(id)

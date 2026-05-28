@@ -13,4 +13,5 @@ public interface OrderRequestService {
     OrderRequest approveOrderRequest(Long id, String managerNotes);
     OrderRequest rejectOrderRequest(Long id, String managerNotes);
     OrderRequest fulfillOrderRequest(Long id, List<FulfillPackageDto> packages);
+    OrderRequest updateOrderRequest(Long id, String description, String productLinks, Integer quantity);
 }

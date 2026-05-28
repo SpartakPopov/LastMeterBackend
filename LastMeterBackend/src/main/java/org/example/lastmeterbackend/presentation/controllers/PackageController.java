@@ -7,6 +7,7 @@ import org.example.lastmeterbackend.domain.models.User;
 import org.example.lastmeterbackend.presentation.dtos.PackageCreationDto;
 import org.example.lastmeterbackend.presentation.dtos.PackageResponseDto;
 import org.example.lastmeterbackend.presentation.dtos.PackageUpdateDto;
+import org.example.lastmeterbackend.presentation.dtos.PickupRequestDto;
 import org.example.lastmeterbackend.presentation.mappers.PackageDtoMapper;
 import org.springframework.web.bind.annotation.*;
 
@@ -82,5 +83,11 @@ public class PackageController {
                 .height(dto.getHeight())
                 .build();
         return packageDtoMapper.toDto(packageService.updatePackage(id, fields));
+    }
+
+    @PostMapping("/pickup")
+    public PackageResponseDto pickupPackage(@RequestBody PickupRequestDto dto) {
+        Package pkg = packageService.pickup(dto.getTrackingNumber());
+        return packageDtoMapper.toDto(pkg);
     }
 }

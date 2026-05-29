@@ -1,5 +1,6 @@
 package org.example.lastmeterbackend.DAL.repositories;
 
+import org.example.lastmeterbackend.DAL.entities.LockerEntity;
 import org.example.lastmeterbackend.DAL.entities.PackageEntity;
 import org.example.lastmeterbackend.DAL.mappers.PackagePersistenceMapper;
 import org.example.lastmeterbackend.domain.enums.LockerStatus;

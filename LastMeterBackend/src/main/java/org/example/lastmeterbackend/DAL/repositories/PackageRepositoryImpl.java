@@ -43,6 +43,9 @@ public class PackageRepositoryImpl implements PackageRepository {
                         "Package not found with tracking number: " + trackingNumber
                 ));
         entity.setStatus(status);
+        if (status == PackageStatus.DELIVERED_TO_LOCKER && entity.getDeliveredAt() == null) {
+            entity.setDeliveredAt(LocalDateTime.now());
+        }
         PackageEntity updatedEntity = packageJpaRepository.save(entity);
         return packagePersistenceMapper.toDomain(updatedEntity);
     }
@@ -95,7 +98,12 @@ public class PackageRepositoryImpl implements PackageRepository {
         entity.setLength(fields.getLength());
         entity.setWidth(fields.getWidth());
         entity.setHeight(fields.getHeight());
-        if (fields.getStatus() != null) entity.setStatus(fields.getStatus());
+        if (fields.getStatus() != null) {
+            entity.setStatus(fields.getStatus());
+            if (fields.getStatus() == PackageStatus.DELIVERED_TO_LOCKER && entity.getDeliveredAt() == null) {
+                entity.setDeliveredAt(LocalDateTime.now());
+            }
+        }
         if (fields.getLocker() != null) {
             LockerEntity lockerEntity = lockerJpaRepository.findById(fields.getLocker().getId())
                     .orElseThrow(() -> new RuntimeException("Locker not found with id: " + fields.getLocker().getId()));

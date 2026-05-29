@@ -3,6 +3,7 @@ package org.example.lastmeterbackend.presentation.dtos;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.example.lastmeterbackend.domain.enums.PackageStatus;
 
 import java.math.BigDecimal;
 
@@ -15,4 +16,6 @@ public class PackageUpdateDto {
     private BigDecimal length;
     private BigDecimal width;
     private BigDecimal height;
+    private PackageStatus status;
+    private Long lockerId;
 }

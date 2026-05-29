@@ -2,6 +2,7 @@ package org.example.lastmeterbackend.presentation.controllers;
 
 import org.example.lastmeterbackend.business.services.PackageService;
 import org.example.lastmeterbackend.domain.enums.PackageStatus;
+import org.example.lastmeterbackend.domain.models.Locker;
 import org.example.lastmeterbackend.domain.models.Package;
 import org.example.lastmeterbackend.domain.models.User;
 import org.example.lastmeterbackend.presentation.dtos.PackageCreationDto;
@@ -75,12 +76,18 @@ public class PackageController {
 
     @PutMapping("/{id}")
     public PackageResponseDto updatePackage(@PathVariable Long id, @RequestBody PackageUpdateDto dto) {
+        Locker locker = dto.getLockerId() != null
+                ? Locker.builder().id(dto.getLockerId()).build()
+                : null;
+
         Package fields = Package.builder()
                 .trackingNumber(dto.getTrackingNumber())
                 .description(dto.getDescription())
                 .length(dto.getLength())
                 .width(dto.getWidth())
                 .height(dto.getHeight())
+                .status(dto.getStatus())
+                .locker(locker)
                 .build();
         return packageDtoMapper.toDto(packageService.updatePackage(id, fields));
     }

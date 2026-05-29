@@ -6,6 +6,7 @@ import org.example.lastmeterbackend.domain.enums.LockerStatus;
 import org.example.lastmeterbackend.domain.enums.PackageStatus;
 import org.example.lastmeterbackend.domain.repositories.PackageRepository;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import org.example.lastmeterbackend.domain.models.Package;
 
 import java.time.LocalDateTime;
@@ -84,6 +85,7 @@ public class PackageRepositoryImpl implements PackageRepository {
     }
 
     @Override
+    @Transactional
     public Package updateFields(Long id, Package fields) {
         PackageEntity entity = packageJpaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Package not found with id: " + id));
@@ -92,6 +94,14 @@ public class PackageRepositoryImpl implements PackageRepository {
         entity.setLength(fields.getLength());
         entity.setWidth(fields.getWidth());
         entity.setHeight(fields.getHeight());
+        if (fields.getStatus() != null) entity.setStatus(fields.getStatus());
+        if (fields.getLocker() != null) {
+            LockerEntity lockerEntity = lockerJpaRepository.findById(fields.getLocker().getId())
+                    .orElseThrow(() -> new RuntimeException("Locker not found with id: " + fields.getLocker().getId()));
+            entity.setLocker(lockerEntity);
+            lockerEntity.setStatus(LockerStatus.OCCUPIED);
+            lockerJpaRepository.save(lockerEntity);
+        }
         return packagePersistenceMapper.toDomain(packageJpaRepository.save(entity));
     }
 

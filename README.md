@@ -14,6 +14,7 @@ LastMeterBackend is a backend service for a last-meter delivery workflow. It let
 - approve or reject order requests
 - fulfill approved requests by creating packages
 - view, update, deliver, and pick up packages
+- receive package delivery notifications
 - view lockers
 - group order requests
 
@@ -228,6 +229,24 @@ Expected result:
 
 ### 6.9 Pick up the package
 
+Before pickup, the user can read the delivery notification:
+
+```bash
+curl "http://localhost:8080/notifications/user/1"
+```
+
+Expected result:
+
+- the response includes a notification with type `PACKAGE_DELIVERED`
+- the message includes the locker and location
+- `packageDetailsUrl` points to `/packages/TRK-TEST-001`
+
+To mark the notification as read, replace `1` with the notification ID returned above:
+
+```bash
+curl -X PATCH "http://localhost:8080/notifications/1/read"
+```
+
 ```bash
 curl -X POST "http://localhost:8080/packages/pickup" -H "Content-Type: application/json" -d "{\"trackingNumber\":\"TRK-TEST-001\"}"
 ```
@@ -352,6 +371,9 @@ Expected result:
 | `GET` | `/packages/unassigned` | View packages without a receiver |
 | `PUT` | `/packages/{id}` | Update package details, status, or locker |
 | `POST` | `/packages/pickup` | Pick up a delivered package |
+| `GET` | `/notifications/user/{userId}` | View notifications for a user |
+| `GET` | `/notifications/user/{userId}/unread` | View unread notifications for a user |
+| `PATCH` | `/notifications/{id}/read` | Mark a notification as read |
 | `POST` | `/order-groups` | Create an order group |
 | `GET` | `/order-groups` | View all order groups |
 | `GET` | `/order-groups/{id}` | View one order group |

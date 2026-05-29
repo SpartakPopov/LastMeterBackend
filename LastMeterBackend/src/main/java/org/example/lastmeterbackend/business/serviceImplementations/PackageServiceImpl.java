@@ -1,6 +1,7 @@
 package org.example.lastmeterbackend.business.serviceImplementations;
 
 import org.example.lastmeterbackend.business.services.PackageService;
+import org.example.lastmeterbackend.business.services.NotificationService;
 import org.example.lastmeterbackend.domain.enums.PackageStatus;
 import org.example.lastmeterbackend.domain.models.Package;
 import org.example.lastmeterbackend.domain.repositories.PackageRepository;
@@ -15,9 +16,12 @@ import java.util.List;
 public class PackageServiceImpl implements PackageService {
 
     private final PackageRepository packageRepository;
+    private final NotificationService notificationService;
 
-    public PackageServiceImpl(PackageRepository packageRepository) {
+    public PackageServiceImpl(PackageRepository packageRepository,
+                              NotificationService notificationService) {
         this.packageRepository = packageRepository;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -28,7 +32,16 @@ public class PackageServiceImpl implements PackageService {
 
     @Override
     public Package updateStatus(String trackingNumber, PackageStatus status) {
-        return packageRepository.update(trackingNumber, status);
+        Package existingPackage = getByTrackingNumber(trackingNumber);
+        Package updatedPackage = packageRepository.update(trackingNumber, status);
+
+        boolean becameDelivered = existingPackage.getStatus() != PackageStatus.DELIVERED_TO_LOCKER
+                && updatedPackage.getStatus() == PackageStatus.DELIVERED_TO_LOCKER;
+        if (becameDelivered) {
+            notificationService.createPackageDeliveredNotification(updatedPackage);
+        }
+
+        return updatedPackage;
     }
     
     @Override
@@ -55,7 +68,20 @@ public class PackageServiceImpl implements PackageService {
 
     @Override
     public Package updatePackage(Long id, Package fields) {
-        return packageRepository.updateFields(id, fields);
+        Package existingPackage = packageRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Package not found with id: " + id));
+        Package updatedPackage = packageRepository.updateFields(id, fields);
+
+        if (becameDelivered(existingPackage, updatedPackage)) {
+            notificationService.createPackageDeliveredNotification(updatedPackage);
+        }
+
+        return updatedPackage;
+    }
+
+    private boolean becameDelivered(Package existingPackage, Package updatedPackage) {
+        return existingPackage.getStatus() != PackageStatus.DELIVERED_TO_LOCKER
+                && updatedPackage.getStatus() == PackageStatus.DELIVERED_TO_LOCKER;
     }
 
     @Override

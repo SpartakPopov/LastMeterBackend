@@ -1,5 +1,6 @@
 package org.example.lastmeterbackend.presentation.controllers;
 
+import org.example.lastmeterbackend.DAL.entities.LockerEntity;
 import org.example.lastmeterbackend.DAL.repositories.LockerJpaRepository;
 import org.example.lastmeterbackend.presentation.dtos.LockerResponseDto;
 import org.springframework.web.bind.annotation.*;
@@ -9,7 +10,6 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/lockers")
-@CrossOrigin(origins = "http://localhost:5173")
 public class LockerController {
 
     private final LockerJpaRepository lockerJpaRepository;
@@ -21,14 +21,20 @@ public class LockerController {
     @GetMapping("/all")
     public List<LockerResponseDto> getAllLockers() {
         return lockerJpaRepository.findAll().stream()
-                .map(l -> LockerResponseDto.builder()
-                        .id(l.getId())
-                        .lockerNumber(l.getLockerNumber())
-                        .size(l.getSize().name())
-                        .status(l.getStatus().name())
-                        .buildingName(l.getBuilding().getName())
-                        .buildingAddress(l.getBuilding().getAddress())
-                        .build())
+                .map(this::toDto)
                 .collect(Collectors.toList());
+    }
+
+    private LockerResponseDto toDto(LockerEntity l) {
+        String buildingName = l.getBuilding() != null ? l.getBuilding().getName() : null;
+        String buildingAddress = l.getBuilding() != null ? l.getBuilding().getAddress() : null;
+        return LockerResponseDto.builder()
+                .id(l.getId())
+                .lockerNumber(l.getLockerNumber())
+                .size(l.getSize() != null ? l.getSize().name() : null)
+                .status(l.getStatus() != null ? l.getStatus().name() : null)
+                .buildingName(buildingName)
+                .buildingAddress(buildingAddress)
+                .build();
     }
 }

@@ -1,5 +1,6 @@
 package org.example.lastmeterbackend.DAL.repositories;
 
+import org.example.lastmeterbackend.DAL.entities.OrderGroupEntity;
 import org.example.lastmeterbackend.DAL.entities.OrderRequestEntity;
 import org.example.lastmeterbackend.DAL.mappers.OrderRequestPersistenceMapper;
 import org.example.lastmeterbackend.domain.enums.OrderRequestStatus;
@@ -40,6 +41,11 @@ public class OrderRequestRepositoryImpl implements OrderRequestRepository {
     }
 
     @Override
+    public List<OrderRequest> findAllById(List<Long> ids) {
+        return jpaRepository.findAllById(ids).stream().map(mapper::toDomain).toList();
+    }
+
+    @Override
     public List<OrderRequest> findByRequestedById(Long userId) {
         return jpaRepository.findByRequestedById(userId).stream().map(mapper::toDomain).toList();
     }
@@ -72,5 +78,13 @@ public class OrderRequestRepositoryImpl implements OrderRequestRepository {
         if (quantity != null) entity.setQuantity(quantity);
         entity.setUpdatedAt(LocalDateTime.now());
         return mapper.toDomain(jpaRepository.save(entity));
+    }
+
+    @Override
+    public void setGroup(Long requestId, Long groupId) {
+        OrderRequestEntity entity = jpaRepository.findById(requestId)
+                .orElseThrow(() -> new RuntimeException("OrderRequest not found with id: " + requestId));
+        entity.setGroup(groupId != null ? OrderGroupEntity.builder().id(groupId).build() : null);
+        jpaRepository.save(entity);
     }
 }

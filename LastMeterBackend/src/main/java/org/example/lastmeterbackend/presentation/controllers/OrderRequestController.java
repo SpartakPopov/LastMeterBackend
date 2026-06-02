@@ -1,9 +1,6 @@
 package org.example.lastmeterbackend.presentation.controllers;
 
 import org.example.lastmeterbackend.business.services.OrderRequestService;
-import org.example.lastmeterbackend.domain.enums.OrderRequestStatus;
-import org.example.lastmeterbackend.domain.models.OrderRequest;
-import org.example.lastmeterbackend.domain.models.User;
 import org.example.lastmeterbackend.presentation.dtos.OrderRequestCreationDto;
 import org.example.lastmeterbackend.presentation.dtos.OrderRequestFulfillDto;
 import org.example.lastmeterbackend.presentation.dtos.OrderRequestRejectDto;
@@ -12,7 +9,6 @@ import org.example.lastmeterbackend.presentation.dtos.OrderRequestUpdateDto;
 import org.example.lastmeterbackend.presentation.mappers.OrderRequestDtoMapper;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,23 +28,10 @@ public class OrderRequestController {
 
     @PostMapping
     public OrderRequestResponseDto createOrderRequest(@RequestBody OrderRequestCreationDto dto) {
-        User requestedBy = User.builder().id(dto.getRequestedById()).build();
-        User requestedFor = dto.getRequestedForId() != null
-                ? User.builder().id(dto.getRequestedForId()).build()
-                : requestedBy;
-
-        OrderRequest orderRequest = OrderRequest.builder()
-                .description(dto.getDescription())
-                .productLinks(dto.getProductLinks())
-                .quantity(dto.getQuantity() != null ? dto.getQuantity() : 1)
-                .requestedBy(requestedBy)
-                .requestedFor(requestedFor)
-                .status(OrderRequestStatus.PENDING)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
-
-        return dtoMapper.toDto(orderRequestService.createOrderRequest(orderRequest));
+        return dtoMapper.toDto(orderRequestService.createOrderRequest(
+                dto.getRequestedById(), dto.getRequestedForId(),
+                dto.getDescription(), dto.getProductLinks(), dto.getQuantity()
+        ));
     }
 
     @GetMapping

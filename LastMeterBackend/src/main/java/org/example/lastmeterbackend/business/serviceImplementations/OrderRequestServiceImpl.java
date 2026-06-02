@@ -3,14 +3,14 @@ package org.example.lastmeterbackend.business.serviceImplementations;
 import org.example.lastmeterbackend.business.services.OrderRequestService;
 import org.example.lastmeterbackend.business.services.PackageService;
 import org.example.lastmeterbackend.domain.enums.OrderRequestStatus;
-import org.example.lastmeterbackend.domain.enums.PackageStatus;
 import org.example.lastmeterbackend.domain.models.OrderRequest;
-import org.example.lastmeterbackend.domain.models.Package;
+import org.example.lastmeterbackend.domain.models.User;
 import org.example.lastmeterbackend.domain.repositories.OrderRequestRepository;
 import org.example.lastmeterbackend.presentation.dtos.FulfillPackageDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -26,7 +26,21 @@ public class OrderRequestServiceImpl implements OrderRequestService {
     }
 
     @Override
-    public OrderRequest createOrderRequest(OrderRequest orderRequest) {
+    public OrderRequest createOrderRequest(Long requestedById, Long requestedForId, String description, String productLinks, Integer quantity) {
+        User requestedBy = User.builder().id(requestedById).build();
+        User requestedFor = requestedForId != null ? User.builder().id(requestedForId).build() : requestedBy;
+
+        OrderRequest orderRequest = OrderRequest.builder()
+                .description(description)
+                .productLinks(productLinks)
+                .quantity(quantity != null ? quantity : 1)
+                .requestedBy(requestedBy)
+                .requestedFor(requestedFor)
+                .status(OrderRequestStatus.PENDING)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+
         return orderRequestRepository.save(orderRequest);
     }
 
@@ -57,29 +71,24 @@ public class OrderRequestServiceImpl implements OrderRequestService {
     }
 
     @Override
-    public OrderRequest updateOrderRequest(Long id, String description, String productLinks, Integer quantity) {
-        return orderRequestRepository.updateFields(id, description, productLinks, quantity);
-    }
-
-    @Override
     @Transactional
     public OrderRequest fulfillOrderRequest(Long id, List<FulfillPackageDto> packages) {
         OrderRequest orderRequest = orderRequestRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("OrderRequest not found with id: " + id));
 
         for (FulfillPackageDto dto : packages) {
-            Package pkg = Package.builder()
-                    .trackingNumber(dto.getTrackingNumber())
-                    .description(dto.getDescription())
-                    .length(dto.getLength())
-                    .width(dto.getWidth())
-                    .height(dto.getHeight())
-                    .status(PackageStatus.PENDING)
-                    .receiver(orderRequest.getRequestedFor())
-                    .build();
-            packageService.createPackage(pkg);
+            packageService.createPackage(
+                    dto.getTrackingNumber(), dto.getDescription(),
+                    dto.getLength(), dto.getWidth(), dto.getHeight(),
+                    null, orderRequest.getRequestedFor().getId()
+            );
         }
 
         return orderRequestRepository.fulfill(id);
+    }
+
+    @Override
+    public OrderRequest updateOrderRequest(Long id, String description, String productLinks, Integer quantity) {
+        return orderRequestRepository.updateFields(id, description, productLinks, quantity);
     }
 }

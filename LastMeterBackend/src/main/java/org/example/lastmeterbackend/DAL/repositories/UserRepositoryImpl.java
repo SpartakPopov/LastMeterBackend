@@ -6,6 +6,7 @@ import org.example.lastmeterbackend.domain.repositories.UserRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public class UserRepositoryImpl implements UserRepository {
@@ -26,5 +27,10 @@ public class UserRepositoryImpl implements UserRepository {
                 .stream()
                 .map(userPersistenceMapper::toDomain)
                 .toList();
+    }
+
+    @Override
+    public Optional<User> findByEmail(String email) {
+        return userJpaRepository.findByEmail(email).map(userPersistenceMapper::toDomain);
     }
 }

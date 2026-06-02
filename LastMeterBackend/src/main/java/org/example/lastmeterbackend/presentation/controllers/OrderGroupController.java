@@ -4,6 +4,7 @@ import org.example.lastmeterbackend.business.services.OrderGroupService;
 import org.example.lastmeterbackend.domain.models.OrderGroup;
 import org.example.lastmeterbackend.presentation.dtos.OrderGroupCreationDto;
 import org.example.lastmeterbackend.presentation.dtos.OrderGroupResponseDto;
+import org.example.lastmeterbackend.presentation.dtos.OrderRequestFulfillDto;
 import org.example.lastmeterbackend.presentation.dtos.OrderRequestResponseDto;
 import org.example.lastmeterbackend.presentation.mappers.OrderRequestDtoMapper;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +28,7 @@ public class OrderGroupController {
 
     @PostMapping
     public OrderGroupResponseDto createGroup(@RequestBody OrderGroupCreationDto dto) {
-        OrderGroup group = orderGroupService.createGroup(dto.getName(), dto.getRequestedById(), dto.getOrderRequestIds());
+        OrderGroup group = orderGroupService.createGroup(dto.getName(), dto.getOrderRequestIds());
         return toDto(group);
     }
 
@@ -39,6 +40,12 @@ public class OrderGroupController {
     @GetMapping("/{id}")
     public OrderGroupResponseDto getGroupById(@PathVariable Long id) {
         return toDto(orderGroupService.getGroupById(id));
+    }
+
+    @PostMapping("/{id}/fulfill")
+    public ResponseEntity<Void> fulfillGroup(@PathVariable Long id, @RequestBody OrderRequestFulfillDto dto) {
+        orderGroupService.fulfillGroup(id, dto.getPackages());
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")

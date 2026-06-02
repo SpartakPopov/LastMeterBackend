@@ -6,7 +6,7 @@ import org.example.lastmeterbackend.presentation.dtos.FulfillPackageDto;
 import java.util.List;
 
 public interface OrderRequestService {
-    OrderRequest createOrderRequest(OrderRequest orderRequest);
+    OrderRequest createOrderRequest(Long requestedById, Long requestedForId, String description, String productLinks, Integer quantity);
     List<OrderRequest> getAllOrderRequests();
     List<OrderRequest> getOrderRequestsByUser(Long userId);
     OrderRequest getOrderRequestById(Long id);

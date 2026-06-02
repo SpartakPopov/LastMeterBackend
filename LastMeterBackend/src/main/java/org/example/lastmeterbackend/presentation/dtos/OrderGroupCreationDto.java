@@ -9,6 +9,5 @@ import java.util.List;
 @NoArgsConstructor
 public class OrderGroupCreationDto {
     private String name;
-    private Long requestedById;
     private List<Long> orderRequestIds;
 }

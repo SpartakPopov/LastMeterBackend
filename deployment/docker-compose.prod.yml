@@ -1,0 +1,49 @@
+services:
+  database:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+      MYSQL_DATABASE: lastmeterdb
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${DB_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - lastmeter
+
+  backend:
+    image: ghcr.io/spartakpopov/lastmeterbackend:latest
+    restart: unless-stopped
+    depends_on:
+      database:
+        condition: service_healthy
+    environment:
+      DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+      SPRING_DATASOURCE_URL: jdbc:mysql://database:3306/lastmeterdb
+      SPRING_DATASOURCE_USERNAME: root
+    expose:
+      - "8080"
+    networks:
+      - lastmeter
+
+  frontend:
+    image: ghcr.io/spartakpopov/lastmeterfrontend:latest
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+    networks:
+      - lastmeter
+
+volumes:
+  mysql_data:
+
+networks:
+  lastmeter:
+    name: lastmeter

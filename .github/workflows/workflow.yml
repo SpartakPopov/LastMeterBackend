@@ -1,29 +1,146 @@
-name: Build and push
+name: Backend CI/CD
 
 on:
+  pull_request:
+    branches: [main]
   push:
     branches: [main]
 
-permissions:
-  contents: read
-  packages: write
+concurrency:
+  group: backend-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build:
+  quality:
+    name: Test, build, and analyze
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: LastMeterBackend
+    env:
+      SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
+      SONAR_PROJECT_KEY: ${{ vars.SONAR_PROJECT_KEY }}
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "25"
+          cache: gradle
+          cache-dependency-path: |
+            LastMeterBackend/*.gradle
+            LastMeterBackend/gradle/wrapper/gradle-wrapper.properties
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x gradlew
+
+      - name: Run tests and build
+        run: ./gradlew clean test jacocoTestReport bootJar --no-daemon
+
+      - name: Validate SonarQube configuration
+        if: github.event_name == 'push'
+        run: |
+          test -n "$SONAR_HOST_URL" || { echo "Missing repository variable SONAR_HOST_URL"; exit 1; }
+          test -n "$SONAR_PROJECT_KEY" || { echo "Missing repository variable SONAR_PROJECT_KEY"; exit 1; }
+          test -n "$SONAR_TOKEN" || { echo "Missing repository secret SONAR_TOKEN"; exit 1; }
+
+      - name: Run SonarQube analysis
+        if: github.event_name == 'push'
+        run: >
+          ./gradlew sonar --no-daemon
+          -Dsonar.host.url="$SONAR_HOST_URL"
+          -Dsonar.projectKey="$SONAR_PROJECT_KEY"
+          -Dsonar.token="$SONAR_TOKEN"
+
+  image:
+    name: Build and publish image
+    if: github.event_name == 'push'
+    needs: quality
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
 
       - name: Log in to GHCR
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push
-        uses: docker/build-push-action@v5
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@v7
         with:
           context: ./LastMeterBackend
           push: true
-          tags: ghcr.io/spartakpopov/lastmeterbackend:latest
+          tags: |
+            ghcr.io/spartakpopov/lastmeterbackend:latest
+            ghcr.io/spartakpopov/lastmeterbackend:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy production
+    if: github.event_name == 'push'
+    needs: image
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+    env:
+      DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
+      DEPLOY_PORT: ${{ vars.DEPLOY_PORT || '22' }}
+      DEPLOY_USER: ${{ vars.DEPLOY_USER }}
+      DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
+      GHCR_USERNAME: ${{ vars.GHCR_USERNAME }}
+      DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+      GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Validate deployment configuration
+        run: |
+          test -n "$DEPLOY_HOST" || { echo "Missing repository variable DEPLOY_HOST"; exit 1; }
+          test -n "$DEPLOY_USER" || { echo "Missing repository variable DEPLOY_USER"; exit 1; }
+          test -n "$DEPLOY_PATH" || { echo "Missing repository variable DEPLOY_PATH"; exit 1; }
+          test -n "$GHCR_USERNAME" || { echo "Missing repository variable GHCR_USERNAME"; exit 1; }
+          test -n "$DEPLOY_SSH_KEY" || { echo "Missing repository secret DEPLOY_SSH_KEY"; exit 1; }
+          test -n "$GHCR_TOKEN" || { echo "Missing repository secret GHCR_TOKEN"; exit 1; }
+          test -n "$DB_PASSWORD" || { echo "Missing repository secret DB_PASSWORD"; exit 1; }
+
+      - name: Configure SSH
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p "$DEPLOY_PORT" -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
+
+      - name: Upload production Compose file
+        run: |
+          ssh -i ~/.ssh/deploy_key -p "$DEPLOY_PORT" "$DEPLOY_USER@$DEPLOY_HOST" "mkdir -p '$DEPLOY_PATH'"
+          scp -i ~/.ssh/deploy_key -P "$DEPLOY_PORT" deployment/docker-compose.prod.yml "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/docker-compose.yml"
+
+      - name: Deploy containers
+        run: |
+          printf 'DB_PASSWORD=%s\n' "$DB_PASSWORD" |
+            ssh -i ~/.ssh/deploy_key -p "$DEPLOY_PORT" "$DEPLOY_USER@$DEPLOY_HOST" "umask 077 && cat > '$DEPLOY_PATH/.env'"
+          printf '%s' "$GHCR_TOKEN" |
+            ssh -i ~/.ssh/deploy_key -p "$DEPLOY_PORT" "$DEPLOY_USER@$DEPLOY_HOST" "docker login ghcr.io -u '$GHCR_USERNAME' --password-stdin"
+          ssh -i ~/.ssh/deploy_key -p "$DEPLOY_PORT" "$DEPLOY_USER@$DEPLOY_HOST" \
+            "cd '$DEPLOY_PATH' && docker compose pull && docker compose up -d --remove-orphans && docker image prune -f"

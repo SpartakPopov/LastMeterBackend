@@ -2,6 +2,7 @@ package org.example.lastmeterbackend.presentation.controllers;
 
 import org.example.lastmeterbackend.business.services.PackageService;
 import org.example.lastmeterbackend.domain.models.Package;
+import org.example.lastmeterbackend.presentation.dtos.DeliverRequestDto;
 import org.example.lastmeterbackend.presentation.dtos.PackageCreationDto;
 import org.example.lastmeterbackend.presentation.dtos.PackageResponseDto;
 import org.example.lastmeterbackend.presentation.dtos.PackageUpdateDto;
@@ -74,5 +75,10 @@ public class PackageController {
     @PostMapping("/pickup")
     public PackageResponseDto pickupPackage(@RequestBody PickupRequestDto dto) {
         return packageDtoMapper.toDto(packageService.pickup(dto.getTrackingNumber()));
+    }
+
+    @PostMapping("/deliver")
+    public PackageResponseDto deliverPackage(@RequestBody DeliverRequestDto dto) {
+        return packageDtoMapper.toDto(packageService.deliver(dto.getTrackingNumber()));
     }
 }

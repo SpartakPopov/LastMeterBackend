@@ -11,6 +11,11 @@ public class PackageStateConflictException extends RuntimeException {
         this.currentStatus = currentStatus;
     }
 
+    public PackageStateConflictException(String message, PackageStatus currentStatus) {
+        super(message);
+        this.currentStatus = currentStatus;
+    }
+
     public PackageStatus getCurrentStatus() {
         return currentStatus;
     }

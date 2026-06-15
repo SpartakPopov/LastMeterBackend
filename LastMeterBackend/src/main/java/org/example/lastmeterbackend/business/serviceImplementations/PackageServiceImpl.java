@@ -112,6 +112,29 @@ public class PackageServiceImpl implements PackageService {
         return packageRepository.pickup(trackingNumber);
     }
 
+    @Override
+    @Transactional
+    public Package deliver(String trackingNumber) {
+        Package existing = packageRepository.findByTrackingNumber(trackingNumber).orElse(null);
+
+        if (existing == null) {
+            // Unknown tracking number: create an unclaimed package (no receiver assigned yet).
+            createPackage(trackingNumber, null, null, null, null, PackageStatus.PENDING, null);
+        } else if (existing.getStatus() == PackageStatus.DELIVERED_TO_LOCKER
+                || existing.getStatus() == PackageStatus.PICKED_UP) {
+            throw new PackageStateConflictException(
+                    "Package cannot be delivered: current status is " + existing.getStatus(),
+                    existing.getStatus());
+        }
+
+        Package delivered = packageRepository.deliver(trackingNumber);
+
+        // No-op for unclaimed packages (no receiver), notifies the receiver otherwise.
+        notificationService.createPackageDeliveredNotification(delivered);
+
+        return delivered;
+    }
+
     private boolean becameDelivered(Package before, Package after) {
         return before.getStatus() != PackageStatus.DELIVERED_TO_LOCKER
                 && after.getStatus() == PackageStatus.DELIVERED_TO_LOCKER;

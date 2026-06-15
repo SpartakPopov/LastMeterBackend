@@ -6,6 +6,7 @@ import org.example.lastmeterbackend.DAL.mappers.PackagePersistenceMapper;
 import org.example.lastmeterbackend.domain.enums.LockerStatus;
 import org.example.lastmeterbackend.domain.enums.PackageStatus;
 import org.example.lastmeterbackend.domain.repositories.PackageRepository;
+import org.example.lastmeterbackend.exceptions.NoLockerAvailableException;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.example.lastmeterbackend.domain.models.Package;
@@ -130,6 +131,30 @@ public class PackageRepositoryImpl implements PackageRepository {
         if (entity.getLocker() != null) {
             entity.getLocker().setStatus(LockerStatus.AVAILABLE);
             lockerJpaRepository.save(entity.getLocker());
+        }
+        return packagePersistenceMapper.toDomain(packageJpaRepository.save(entity));
+    }
+
+    @Override
+    @Transactional
+    public Package deliver(String trackingNumber) {
+        PackageEntity entity = packageJpaRepository.findByTrackingNumber(trackingNumber)
+                .orElseThrow(() -> new RuntimeException(
+                        "Package not found with tracking number: " + trackingNumber
+                ));
+
+        LockerEntity locker = entity.getLocker();
+        if (locker == null) {
+            locker = lockerJpaRepository.findFirstByStatus(LockerStatus.AVAILABLE)
+                    .orElseThrow(NoLockerAvailableException::new);
+            entity.setLocker(locker);
+        }
+        locker.setStatus(LockerStatus.OCCUPIED);
+        lockerJpaRepository.save(locker);
+
+        entity.setStatus(PackageStatus.DELIVERED_TO_LOCKER);
+        if (entity.getDeliveredAt() == null) {
+            entity.setDeliveredAt(LocalDateTime.now());
         }
         return packagePersistenceMapper.toDomain(packageJpaRepository.save(entity));
     }

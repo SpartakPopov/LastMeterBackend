@@ -1,5 +1,6 @@
 package org.example.lastmeterbackend.presentation.handlers;
 
+import org.example.lastmeterbackend.exceptions.NoLockerAvailableException;
 import org.example.lastmeterbackend.exceptions.PackageNotFoundException;
 import org.example.lastmeterbackend.exceptions.PackageStateConflictException;
 import org.springframework.http.HttpStatus;
@@ -25,5 +26,11 @@ public class GlobalExceptionHandler {
                         "error", ex.getMessage(),
                         "currentStatus", ex.getCurrentStatus().name()
                 ));
+    }
+
+    @ExceptionHandler(NoLockerAvailableException.class)
+    public ResponseEntity<Map<String, Object>> handleNoLockerAvailable(NoLockerAvailableException ex) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(Map.of("error", ex.getMessage()));
     }
 }

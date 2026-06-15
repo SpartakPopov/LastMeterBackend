@@ -19,4 +19,5 @@ public interface PackageRepository {
     void deleteById(Long id);
 
     Package pickup(String trackingNumber);
+    Package deliver(String trackingNumber);
 }

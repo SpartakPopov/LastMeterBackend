@@ -15,4 +15,5 @@ public interface PackageService {
     List<Package> getAllPackagesByReceiver(Long receiverId);
     List<Package> getUnassignedPackages();
     Package pickup(String trackingNumber);
+    Package deliver(String trackingNumber);
 }
